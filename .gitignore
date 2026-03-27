@@ -1,0 +1,28 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.ruff_cache/
+.mypy_cache/
+
+# Database
+data/jobs.db
+
+# Tailored resumes (generated, not source-controlled)
+data/resumes/tailored/
+
+# Gmail OAuth credentials and tokens (sensitive)
+credentials/
+
+# Resume (personal, not source-controlled)
+data/resumes/base_resume.*
+
+# macOS
+.DS_Store
+
+# Claude Code settings
+.claude/
