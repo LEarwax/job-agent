@@ -72,7 +72,12 @@ async def run_scoring() -> tuple[int, int]:
     """
     kept = skipped = 0
     with Session(engine) as session:
-        jobs = session.exec(select(Job).where(Job.status == ApplicationStatus.DISCOVERED)).all()
+        jobs = session.exec(
+            select(Job).where(
+                Job.status == ApplicationStatus.DISCOVERED,
+                Job.fit_score == None,  # noqa: E711
+            )
+        ).all()
         for job in jobs:
             score, reason = score_job_fit(job)
             job.fit_score = score
