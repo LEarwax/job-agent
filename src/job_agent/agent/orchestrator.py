@@ -44,7 +44,17 @@ async def run_discovery() -> int:
             new_count = 0
             for job in jobs:
                 existing = session.exec(select(Job).where(Job.url == job.url)).first()
-                if not existing:
+                if existing:
+                    continue
+                # Also deduplicate by (company, title) — job boards frequently
+                # re-post the same listing with a new URL/tracking ID.
+                duplicate = session.exec(
+                    select(Job).where(
+                        Job.company == job.company,
+                        Job.title == job.title,
+                    )
+                ).first()
+                if not duplicate:
                     if discoverer.is_relevant(job, settings.target_roles, settings.exclude_title_keywords):
                         session.add(job)
                         new_count += 1
