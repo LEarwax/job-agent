@@ -17,6 +17,9 @@ from job_agent.apply.greenhouse import GreenhouseApplicator
 from job_agent.apply.lever import LeverApplicator
 from job_agent.config import settings
 from job_agent.db import engine, init_db
+from job_agent.discovery.himalayas import HimalayasDiscoverer
+from job_agent.discovery.hn_hiring import HNHiringDiscoverer
+from job_agent.discovery.jobicy import JobicyDiscoverer
 from job_agent.discovery.remoteok import RemoteOKDiscoverer
 from job_agent.discovery.weworkremotely import WeWorkRemotelyDiscoverer, FEEDS
 from job_agent.models import Application, ApplicationStatus, Job
@@ -33,6 +36,9 @@ APPLICATORS = [GreenhouseApplicator(), LeverApplicator()]
 async def run_discovery() -> int:
     """Discover new jobs across all configured sources. Returns count of new jobs."""
     discoverers = [
+        HimalayasDiscoverer(),
+        JobicyDiscoverer(),
+        HNHiringDiscoverer(),
         RemoteOKDiscoverer(),
         *[WeWorkRemotelyDiscoverer(feed) for feed in FEEDS],
     ]
@@ -72,7 +78,7 @@ async def run_scoring() -> tuple[int, int, list[Job]]:
     """
     kept = skipped = 0
     kept_jobs: list[Job] = []
-    with Session(engine) as session:
+    with Session(engine, expire_on_commit=False) as session:
         jobs = session.exec(
             select(Job).where(
                 Job.status == ApplicationStatus.DISCOVERED,
