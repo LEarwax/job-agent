@@ -65,12 +65,13 @@ async def run_discovery() -> int:
     return total_new
 
 
-async def run_scoring() -> tuple[int, int]:
+async def run_scoring() -> tuple[int, int, list[Job]]:
     """
     Score all DISCOVERED jobs for fit. Jobs below MIN_FIT_SCORE are marked SKIPPED.
-    Returns (kept, skipped) counts.
+    Returns (kept, skipped, kept_jobs) — kept_jobs contains only jobs scored this run.
     """
     kept = skipped = 0
+    kept_jobs: list[Job] = []
     with Session(engine) as session:
         jobs = session.exec(
             select(Job).where(
@@ -88,10 +89,11 @@ async def run_scoring() -> tuple[int, int]:
                 print(f"  [score {score}/10] SKIP  {job.title} @ {job.company} — {reason}")
             else:
                 kept += 1
+                kept_jobs.append(job)
                 print(f"  [score {score}/10] KEEP  {job.title} @ {job.company} — {reason}")
             session.add(job)
         session.commit()
-    return kept, skipped
+    return kept, skipped, kept_jobs
 
 
 async def run_tailoring() -> int:

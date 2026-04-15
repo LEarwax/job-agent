@@ -23,20 +23,11 @@ def run(
     if discover_only:
         from job_agent.agent.orchestrator import run_scoring
         from job_agent.notify.email import PipelineRunSummary, send_pipeline_summary
-        from job_agent.models import ApplicationStatus, Job
-        from job_agent.db import engine
-        from sqlmodel import Session, select
 
         discovered = asyncio.run(run_discovery())
-        kept, skipped = asyncio.run(run_scoring())
+        kept, skipped, pending = asyncio.run(run_scoring())
 
         from job_agent.outreach.message import draft_outreach_message
-
-        with Session(engine) as session:
-            pending = session.exec(
-                select(Job).where(Job.status == ApplicationStatus.DISCOVERED)
-            ).all()
-            pending = list(pending)
 
         console.print(f"  Drafting outreach messages for {len(pending)} jobs...")
         outreach_drafts = {}
